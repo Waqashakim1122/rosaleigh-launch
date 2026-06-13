@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ROSALEIGH | Launching Soon</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,6 +24,7 @@
 
         .bg {
             position:fixed; inset:0;
+            background-color: #1a1a1a;  /* fallback while image loads */
             background-image: url('bg.jpeg');
             background-position:center center;
             background-size:cover; 
@@ -58,12 +59,13 @@
         }
 
         .heritage {
-            font-size:clamp(16px, 2.2vw, 22px);   /* Increased size */
+            font-size:clamp(16px, 2.2vw, 22px);
             letter-spacing:0.8em;
             text-transform:uppercase; 
             margin-bottom:48px; 
             color:var(--gold);
             font-weight: 400;
+            white-space: nowrap;   /* prevent breaking on medium screens */
         }
 
         .launching-container {
@@ -136,10 +138,37 @@
             color:rgba(255,255,255,0.28); z-index:3;
         }
 
-        @media(max-width:768px) {
+        /* Responsive fixes for small screens */
+        @media(max-width: 768px) {
             .logo { width:170px; margin-bottom:20px; }
             .launching-container { height:120px; }
             .content { padding:0 20px 70px; }
+        }
+
+        /* Fix excessive letter-spacing on narrow screens */
+        @media(max-width: 560px) {
+            .heritage {
+                letter-spacing: 0.4em;   /* reduces extra width on small screens */
+                white-space: nowrap;     /* keep on one line, overflow hidden by body */
+            }
+        }
+
+        /* Allow tiny screens (<=380px) to wrap the launching text if needed */
+        @media(max-width: 380px) {
+            .launching {
+                white-space: normal;
+                width: 90%;
+                line-height: 1.2;
+                font-size: clamp(28px, 6vw, 48px) !important;  /* override per-style safely */
+            }
+            /* Keep elegance for script fonts by adjusting size */
+            #l1, #l6 { font-size: clamp(40px, 7vw, 70px) !important; }
+            #l3 { font-size: clamp(38px, 6.5vw, 65px) !important; }
+            #l10 { font-size: clamp(44px, 7.5vw, 75px) !important; }
+            .heritage {
+                letter-spacing: 0.2em;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -169,7 +198,7 @@
     <script>
         const items = document.querySelectorAll('.launching');
         const FULL = 'Launching Soon';
-        let cur = 0, twTimer = null;
+        let cur = 0, twTimer = null, blinkInterval = null;
 
         function typeIt(el) {
             el.textContent = '';
@@ -182,8 +211,11 @@
                     twTimer = setTimeout(step, 95); 
                 } else {
                     let v = true;
-                    const b = setInterval(() => {
-                        if (!el.classList.contains('active')) { clearInterval(b); return; }
+                    blinkInterval = setInterval(() => {
+                        if (!el.classList.contains('active')) { 
+                            clearInterval(blinkInterval);
+                            return; 
+                        }
                         el.textContent = FULL + (v ? '|' : '');
                         v = !v;
                     }, 480);
@@ -195,7 +227,8 @@
         function cycle() {
             items[cur].classList.remove('active');
             if (items[cur].id === 'l7') { 
-                if(twTimer){clearTimeout(twTimer);twTimer=null;} 
+                if(twTimer){clearTimeout(twTimer); twTimer=null;}
+                if(blinkInterval){clearInterval(blinkInterval); blinkInterval=null;}
                 items[cur].textContent=''; 
             }
             const nxt = (cur+1) % items.length;
